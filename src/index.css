@@ -1,0 +1,94 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  background: #0a0a0a;
+  color: #e8e8e8;
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 12px;
+  overflow: hidden;
+}
+
+/* Flash animation for updated values */
+@keyframes flash-green {
+  0% { background-color: rgba(0, 204, 68, 0.3); }
+  100% { background-color: transparent; }
+}
+@keyframes flash-red {
+  0% { background-color: rgba(255, 51, 51, 0.3); }
+  100% { background-color: transparent; }
+}
+.flash-up {
+  animation: flash-green 0.6s ease-out;
+}
+.flash-down {
+  animation: flash-red 0.6s ease-out;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #111111; }
+::-webkit-scrollbar-thumb { background: #333333; }
+::-webkit-scrollbar-thumb:hover { background: #444444; }
+
+/* Logo auto-invert: dark bg = light icon, light bg = dark icon */
+.echelon-logo {
+  color: #1E293B; /* dark on light */
+}
+@media (prefers-color-scheme: dark) {
+  .echelon-logo {
+    color: #e8e8e8; /* light on dark */
+  }
+}
+/* Force light when placed inside dark surface elements */
+.bg-surface .echelon-logo,
+.bg-surface2 .echelon-logo,
+.bg-bg .echelon-logo {
+  color: #e8e8e8;
+}
+
+/* Panel header left border accent */
+.panel-header {
+  border-left: 2px solid #ff6600;
+  padding-left: 8px;
+}
+
+/* Skeleton shimmer */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #1a1a1a 25%, #222222 50%, #1a1a1a 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+/* Marquee ticker */
+.marquee {
+  overflow: hidden;
+  position: relative;
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee var(--marquee-duration, 36s) linear infinite;
+}
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
