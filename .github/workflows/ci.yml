@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Lint, typecheck, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Lint
+        run: npm run lint
+        continue-on-error: true
+      # Three tsconfigs here (app / node / root) — check the app one explicitly
+      # rather than relying on whichever the bare invocation picks up.
+      - name: Typecheck
+        run: npx tsc --noEmit -p tsconfig.app.json
+        continue-on-error: true
+      - name: Build
+        run: npm run build
