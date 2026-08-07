@@ -1,0 +1,18 @@
+# Normalise line endings in the repository. Without this, a checkout on Windows
+# can commit CRLF and produce a whole-file diff that reviews as a rewrite.
+* text=auto eol=lf
+
+# Explicitly binary — never diffed, never line-ending converted.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg text
+*.woff binary
+*.woff2 binary
+*.pdf binary
+
+# Lockfiles: keep them in diffs but collapse them in review by default.
+package-lock.json linguist-generated=true
+bun.lock linguist-generated=true
