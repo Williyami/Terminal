@@ -16,6 +16,9 @@ export interface KpiRow {
   kpiId: number
   value: number | null
   format: 'ratio' | 'pct' | 'currency' | 'millions'
+  /** Börsdata screens most KPIs as last/latest; growth rates only exist as CAGRs. */
+  group?: string
+  calc?: string
 }
 
 const VALUATION: Array<Omit<KpiRow, 'value'>> = [
@@ -34,8 +37,8 @@ const QUALITY: Array<Omit<KpiRow, 'value'>> = [
   { label: 'Profit Margin',    kpiId: 30, format: 'pct' },
   { label: 'Return on Equity', kpiId: 33, format: 'pct' },
   { label: 'Equity Ratio',     kpiId: 39, format: 'pct' },
-  { label: 'Revenue Growth',   kpiId: 94, format: 'pct' },
-  { label: 'Earnings Growth',  kpiId: 97, format: 'pct' },
+  { label: 'Revenue CAGR 3Y',  kpiId: 94, format: 'pct', group: '3year', calc: 'cagr' },
+  { label: 'Earnings CAGR 3Y', kpiId: 97, format: 'pct', group: '3year', calc: 'cagr' },
 ]
 
 export interface Fundamentals {
@@ -47,7 +50,10 @@ export interface Fundamentals {
 
 async function loadKpiGroup(insId: number, defs: Array<Omit<KpiRow, 'value'>>): Promise<KpiRow[]> {
   return Promise.all(
-    defs.map(async def => ({ ...def, value: await fetchKpi(insId, def.kpiId) })),
+    defs.map(async def => ({
+      ...def,
+      value: await fetchKpi(insId, def.kpiId, def.group ?? 'last', def.calc ?? 'latest'),
+    })),
   )
 }
 

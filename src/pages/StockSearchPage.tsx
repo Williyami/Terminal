@@ -5,7 +5,7 @@ import { OHLCVChart } from '../components/OHLCVChart'
 import { Watchlist } from '../components/Watchlist'
 import { NewsFeed } from '../components/NewsFeed'
 import { FundamentalsPanel } from '../components/FundamentalsPanel'
-import { searchInstruments } from '../utils/borsdata'
+import { searchInstruments, resolveSymbol, fetchMovers, fetchKpi } from '../utils/borsdata'
 import { offsetCell } from '../utils/sheet'
 import type { Indicators } from '../types'
 
@@ -83,25 +83,67 @@ async function fetchSearch(q: string): Promise<SearchItem[]> {
 
 async function fetchQuote(symbol: string): Promise<QuoteInfo | null> {
   const res = await fetch(`/yf/q1/v8/finance/chart/${encodeURIComponent(symbol)}?range=1d&interval=1d&includePrePost=false`)
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const data = await res.json()
-  const meta = data?.chart?.result?.[0]?.meta
-  if (!meta) return null
+  const data = res.ok ? await res.json() : null
+  const meta = data?.chart?.result?.[0]?.meta ?? null
+
+  // The chart endpoint omits market cap, P/E and often the change; Börsdata
+  // has all three, so fill the gaps rather than showing dashes.
+  const bd = await fetchBorsdataDetail(symbol).catch(() => null)
+  if (!meta && !bd) return null
+
+  const price = meta?.regularMarketPrice ?? bd?.price
+  const changePct = meta?.regularMarketChangePercent ?? bd?.changePct
+  const change = meta?.regularMarketChange
+    ?? (price != null && changePct != null ? (price * changePct) / (100 + changePct) : undefined)
+
   return {
     symbol,
-    shortName: meta.shortName,
-    longName: meta.longName,
-    regularMarketPrice: meta.regularMarketPrice,
-    regularMarketChange: meta.regularMarketChange,
-    regularMarketChangePercent: meta.regularMarketChangePercent,
-    marketCap: meta.marketCap,
-    trailingPE: meta.trailingPE,
-    forwardPE: meta.forwardPE,
-    regularMarketDayHigh: meta.regularMarketDayHigh,
-    regularMarketDayLow: meta.regularMarketDayLow,
-    regularMarketOpen: meta.regularMarketOpen,
-    regularMarketVolume: meta.regularMarketVolume,
-    currency: meta.currency,
+    shortName: meta?.shortName ?? bd?.name,
+    longName: meta?.longName ?? bd?.name,
+    regularMarketPrice: price,
+    regularMarketChange: change,
+    regularMarketChangePercent: changePct,
+    marketCap: meta?.marketCap ?? bd?.marketCap,
+    trailingPE: meta?.trailingPE ?? bd?.pe,
+    forwardPE: meta?.forwardPE,
+    regularMarketDayHigh: meta?.regularMarketDayHigh ?? bd?.high,
+    regularMarketDayLow: meta?.regularMarketDayLow ?? bd?.low,
+    regularMarketOpen: meta?.regularMarketOpen ?? bd?.open,
+    regularMarketVolume: meta?.regularMarketVolume ?? bd?.volume,
+    currency: meta?.currency ?? bd?.currency,
+  }
+}
+
+interface BorsdataDetail {
+  name: string
+  price?: number
+  changePct?: number
+  marketCap?: number
+  pe?: number
+  open?: number
+  high?: number
+  low?: number
+  volume?: number
+  currency?: string
+}
+
+async function fetchBorsdataDetail(symbol: string): Promise<BorsdataDetail | null> {
+  const inst = await resolveSymbol(symbol)
+  if (!inst) return null
+  const [snapshot, pe] = await Promise.all([
+    fetchMovers(inst.global),
+    fetchKpi(inst.insId, 2),
+  ])
+  const mover = snapshot.movers.find(m => m.insId === inst.insId)
+  return {
+    name: inst.name,
+    price: mover?.close,
+    changePct: mover?.changePct ?? undefined,
+    // Börsdata reports market cap in millions; the panel formats absolute values
+    marketCap: mover?.marketCap != null ? mover.marketCap * 1_000_000 : undefined,
+    pe: pe ?? undefined,
+    volume: mover?.volume,
+    currency: inst.stockPriceCurrency ?? undefined,
   }
 }
 
