@@ -41,8 +41,8 @@ function periodLabel(r: Report): string {
 }
 
 function ReportTable({ reports }: { reports: Report[] }) {
-  // Newest first reads better in a terminal table than the API's oldest-first order
-  const rows = [...reports].reverse().slice(0, 8)
+  // Börsdata returns newest-first, which is the order a terminal table wants
+  const rows = reports.slice(0, 8)
   if (rows.length === 0) return <div className="text-secondary text-xs font-mono">No reports.</div>
 
   return (

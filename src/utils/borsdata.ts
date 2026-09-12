@@ -262,6 +262,9 @@ export interface Mover {
   insId: number
   date: string
   close: number
+  open: number
+  high: number
+  low: number
   previousClose: number | null
   changePct: number | null
   /** Millions of the instrument's report currency. */

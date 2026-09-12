@@ -27,3 +27,9 @@ dist-ssr
 .env
 .env.*
 credentials.json
+
+# Browser-automation output
+.playwright-mcp
+*.png
+!src/assets/*.png
+!public/**/*.png

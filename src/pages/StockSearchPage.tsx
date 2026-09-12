@@ -142,6 +142,9 @@ async function fetchBorsdataDetail(symbol: string): Promise<BorsdataDetail | nul
     // Börsdata reports market cap in millions; the panel formats absolute values
     marketCap: mover?.marketCap != null ? mover.marketCap * 1_000_000 : undefined,
     pe: pe ?? undefined,
+    open: mover?.open,
+    high: mover?.high,
+    low: mover?.low,
     volume: mover?.volume,
     currency: inst.stockPriceCurrency ?? undefined,
   }
