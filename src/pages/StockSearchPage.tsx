@@ -4,13 +4,17 @@ import { useWatchlist } from '../context/WatchlistContext'
 import { OHLCVChart } from '../components/OHLCVChart'
 import { Watchlist } from '../components/Watchlist'
 import { NewsFeed } from '../components/NewsFeed'
+import { FundamentalsPanel } from '../components/FundamentalsPanel'
+import { searchInstruments } from '../utils/borsdata'
 import { offsetCell } from '../utils/sheet'
+import type { Indicators } from '../types'
 
 interface SearchItem {
   symbol: string
   name: string
   exchange: string
   type: string
+  source: 'borsdata' | 'yahoo'
 }
 
 interface QuoteInfo {
@@ -30,33 +34,51 @@ interface QuoteInfo {
   longName?: string
 }
 
+/**
+ * Börsdata's ~18k instrument universe is held in memory client-side, so this
+ * matches locally with no request per keystroke. Yahoo is the fallback for
+ * anything outside Börsdata's coverage — indices, ETFs, FX.
+ */
 async function fetchSearch(q: string): Promise<SearchItem[]> {
+  const bd = await searchInstruments(q, 10).catch(() => [])
+  if (bd.length > 0) {
+    return bd.map(inst => ({
+      symbol: inst.yahoo ?? inst.ticker ?? String(inst.insId),
+      name: inst.name,
+      exchange: inst.market ?? (inst.global ? 'Global' : 'Nordic'),
+      type: inst.sector ?? 'EQUITY',
+      source: 'borsdata' as const,
+    }))
+  }
+
   const res = await fetch(`/yf-search?q=${encodeURIComponent(q)}&quotesCount=10&newsCount=0`)
   if (res.ok) {
     const data = await res.json()
-    const quotes = Array.isArray(data?.quotes) ? data.quotes : []
-    const items = quotes.map((r: Record<string, unknown>) => ({
+    const quotes: Array<Record<string, unknown>> = Array.isArray(data?.quotes) ? data.quotes : []
+    const items: SearchItem[] = quotes.map(r => ({
       symbol: String(r.symbol ?? ''),
       name: String(r.shortname ?? r.longname ?? ''),
       exchange: String(r.exchange ?? ''),
       type: String(r.quoteType ?? ''),
-    })).filter(q => q.symbol)
+      source: 'yahoo' as const,
+    })).filter(item => item.symbol)
     if (items.length > 0) return items
   }
 
-  // Fallback: treat query as symbol(s) and use quote endpoint
+  // Last resort: treat the query as literal symbol(s)
   const symbols = q.split(',').map(s => s.trim()).filter(Boolean).slice(0, 10)
   if (symbols.length === 0) return []
   const qres = await fetch(`/yf/q1/v7/finance/quote?symbols=${encodeURIComponent(symbols.join(','))}`)
   if (!qres.ok) throw new Error(`HTTP ${qres.status}`)
   const qdata = await qres.json()
-  const result = Array.isArray(qdata?.quoteResponse?.result) ? qdata.quoteResponse.result : []
-  return result.map((r: Record<string, unknown>) => ({
+  const result: Array<Record<string, unknown>> = Array.isArray(qdata?.quoteResponse?.result) ? qdata.quoteResponse.result : []
+  return result.map(r => ({
     symbol: String(r.symbol ?? ''),
     name: String(r.shortName ?? r.longName ?? ''),
     exchange: String(r.fullExchangeName ?? r.exchange ?? ''),
     type: String(r.quoteType ?? ''),
-  })).filter(q => q.symbol)
+    source: 'yahoo' as const,
+  })).filter(item => item.symbol)
 }
 
 async function fetchQuote(symbol: string): Promise<QuoteInfo | null> {
@@ -92,7 +114,7 @@ export function StockSearchPage() {
   const { cells, setCells, activeCell } = useSpreadsheet()
   const { addSymbol } = useWatchlist()
   const [flash, setFlash] = useState<'watchlist' | 'export' | null>(null)
-  const [indicators, setIndicators] = useState({
+  const [indicators, setIndicators] = useState<Indicators>({
     rsi: false,
     sma20: false,
     ema20: false,
@@ -181,7 +203,7 @@ export function StockSearchPage() {
         selected={selected?.symbol ?? ''}
         onSelect={(symbol) => {
           setQuery(symbol)
-          setSelected({ symbol, name: symbol, exchange: '', type: '' })
+          setSelected({ symbol, name: symbol, exchange: '', type: '', source: 'borsdata' })
         }}
       />
 
@@ -268,6 +290,8 @@ export function StockSearchPage() {
             </div>
           )}
         </section>
+
+        {selected && <FundamentalsPanel symbol={selected.symbol} />}
 
         {selected && (
           <section className="border border-border bg-surface2 p-3">

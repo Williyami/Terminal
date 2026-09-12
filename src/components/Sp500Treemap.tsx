@@ -74,7 +74,7 @@ export function Sp500Treemap() {
           <Treemap
             data={treemapData.children}
             dataKey="value"
-            ratio={4 / 3}
+            aspectRatio={4 / 3}
             stroke="#0f0f0f"
             content={<Cell />}
           >

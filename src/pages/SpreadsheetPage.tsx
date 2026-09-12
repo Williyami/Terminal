@@ -70,7 +70,7 @@ export function SpreadsheetPage() {
         if (trimmed.includes(':')) return parseRange(trimmed)
         return [trimmed]
       })
-      const values = parts.map((ref: string) => toNumber(getValue(ref)))
+      const values: number[] = parts.map((ref: string) => toNumber(getValue(ref)))
       if (values.length === 0) return '0'
       if (fn === 'SUM') return String(values.reduce((a, b) => a + b, 0))
       if (fn === 'AVG') return String(values.reduce((a, b) => a + b, 0) / values.length)
@@ -501,7 +501,7 @@ export function SpreadsheetPage() {
                     if (editing && isFormula) {
                       setFormulaSelection(id, id)
                     }
-                    ;(e.currentTarget as HTMLElement).closest('[data-sheet-grid="true"]')?.focus()
+                    ;(e.currentTarget as HTMLElement).closest<HTMLElement>('[data-sheet-grid="true"]')?.focus()
                   }}
                   onMouseDown={(e) => {
                     if (e.shiftKey) {

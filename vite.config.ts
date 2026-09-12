@@ -2,6 +2,7 @@ import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { WebSocket } from 'ws'
+import { borsdataProxyPlugin } from './server/borsdata'
 
 const YF_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 const YF_HEADERS = { 'User-Agent': YF_UA, 'Accept': 'application/json' }
@@ -26,7 +27,7 @@ async function getOpenSkyToken(env: Record<string, string>) {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body,
   })
-  const json = await res.json()
+  const json = await res.json() as { access_token?: string; expires_in?: number }
   if (!res.ok || !json?.access_token) {
     throw new Error(`OpenSky token error: ${res.status}`)
   }
@@ -144,11 +145,6 @@ function yahooOptionsPlugin(): Plugin {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const OPENSKY_HEADERS: Record<string, string> = {
-    Accept: 'application/json',
-    'User-Agent': YF_UA,
-  }
-
   function aisStreamPluginWithEnv(): Plugin {
     async function handle(req: IncomingMessage, res: ServerResponse) {
       const apiKey = env.AISSTREAM_API_KEY
@@ -232,6 +228,7 @@ export default defineConfig(({ mode }) => {
       openSkyProxyPlugin(env),
       aishubProxyPlugin(env),
       gnewsProxyPlugin(env),
+      borsdataProxyPlugin(env),
     ],
     server: {
       host: true,

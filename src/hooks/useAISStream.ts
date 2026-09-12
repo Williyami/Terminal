@@ -19,7 +19,7 @@ export interface AISMessage {
 }
 
 interface TrailPoint { lat: number; lon: number; time?: string }
-interface LatestShip { mmsi: string; shipName?: string; lat: number; lon: number; lastSeen: number }
+interface LatestShip { mmsi: string; shipName?: string; lat: number; lon: number; sog?: number; cog?: number; lastSeen: number }
 export interface AISStatic {
   mmsi: string
   shipName?: string
@@ -112,8 +112,10 @@ export function useAISStream(bbox: BBox, enabled: boolean, limit = 50) {
         latestRef.current.set(next.mmsi, {
           mmsi: next.mmsi,
           shipName: next.shipName,
-          lat: next.lat,
-          lon: next.lon,
+          lat: Number(lat),
+          lon: Number(lon),
+          sog: next.sog,
+          cog: next.cog,
           lastSeen: next.lastSeen ?? Date.now(),
         })
 

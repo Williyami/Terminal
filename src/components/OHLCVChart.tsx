@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, type Dispatch, type SetStateAction } from 'react'
 import {
   ResponsiveContainer, ComposedChart, Line, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine
 } from 'recharts'
 import { useChart, type ChartRange } from '../hooks/useChart'
 import { useQuotes } from '../hooks/useQuotes'
+import type { Indicators } from '../types'
 
 const RANGES: ChartRange[] = ['1D', '5D', '1M', '3M', '1Y', '5Y']
 
@@ -42,18 +43,8 @@ function CustomTooltip({ active, payload, range }: TooltipPayload & { active?: b
 
 interface OHLCVChartProps {
   symbol: string
-  indicators?: {
-    rsi?: boolean
-    sma20?: boolean
-    ema20?: boolean
-    macd?: boolean
-  }
-  onIndicatorsChange?: (next: {
-    rsi?: boolean
-    sma20?: boolean
-    ema20?: boolean
-    macd?: boolean
-  }) => void
+  indicators?: Indicators
+  onIndicatorsChange?: Dispatch<SetStateAction<Indicators>>
 }
 
 function calcSMA(values: number[], period: number) {

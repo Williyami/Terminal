@@ -37,3 +37,10 @@ export interface MacroData {
   changePct?: number
   unit?: string
 }
+
+export interface Indicators {
+  rsi: boolean
+  sma20: boolean
+  ema20: boolean
+  macd: boolean
+}

@@ -28,7 +28,7 @@ const REGIONS = ['Americas', 'Europe', 'Asia', 'MENA', 'Africa'] as const
 interface Props { compact?: boolean }
 
 export function MacroPanel({ compact = false }: Props) {
-  const { data, loading: ratesLoading } = useMacro(60000)
+  const { data } = useMacro(60000)
   const { markets, loading: marketsLoading } = useWorldMarkets(60000)
   const clocks = useWorldClock(60000)
 

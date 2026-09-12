@@ -12,7 +12,6 @@
   "dependencies": {
     "@turf/boolean-point-in-polygon": "^7.3.4",
     "@turf/helpers": "^7.3.4",
-    "@types/recharts": "^1.8.29",
     "axios": "^1.13.6",
     "d3-geo": "^3.1.1",
     "leaflet": "^1.9.4",
@@ -26,9 +25,13 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
+    "@types/d3-geo": "^3.1.1",
+    "@types/leaflet": "^1.9.22",
     "@types/node": "^24.12.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@types/topojson-client": "^3.1.5",
+    "@types/ws": "^8.18.1",
     "@vitejs/plugin-react": "^6.0.1",
     "autoprefixer": "^10.4.27",
     "eslint": "^9.39.4",

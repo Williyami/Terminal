@@ -1,9 +1,6 @@
-export interface Indicators {
-  rsi: boolean
-  sma20: boolean
-  ema20: boolean
-  macd: boolean
-}
+import type { Indicators } from '../types'
+
+export type { Indicators }
 
 interface Props {
   indicators: Indicators

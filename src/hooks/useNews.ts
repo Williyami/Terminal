@@ -49,7 +49,7 @@ async function fetchGNews(symbol: string): Promise<NewsItem[]> {
   if (!res.ok) return []
   const data = await res.json()
   const articles = Array.isArray(data?.articles) ? data.articles : []
-  return articles.map((a: Record<string, unknown>, i: number) => ({
+  return articles.map((a: Record<string, unknown> & { source?: { name?: string } }, i: number) => ({
     id: String(a.url ?? `gnews-${i}`),
     time: fmtTime(String(a.publishedAt ?? '')),
     source: String(a?.source?.name ?? 'GNEWS').toUpperCase().slice(0, 12),

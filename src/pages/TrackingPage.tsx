@@ -179,6 +179,19 @@ export function TrackingPage() {
     return null
   }
 
+  function RestoreSavedView() {
+    const map = useMap()
+    useEffect(() => {
+      if (mapViewRef.current) {
+        map.setView(mapViewRef.current.center, mapViewRef.current.zoom, { animate: false })
+        userMovedRef.current = true
+      }
+      // Runs once on mount — remounting the map should not fight the user's pan
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+    return null
+  }
+
   function FitBoundsOnce() {
     const map = useMap()
     const lastKeyRef = useRef('')
@@ -425,13 +438,8 @@ export function TrackingPage() {
                   <MapContainer
                     style={{ height: '100%', width: '100%' }}
                     scrollWheelZoom
-                    whenCreated={(map) => {
-                      if (mapViewRef.current) {
-                        map.setView(mapViewRef.current.center, mapViewRef.current.zoom, { animate: false })
-                        userMovedRef.current = true
-                      }
-                    }}
                   >
+                    <RestoreSavedView />
                     <FitBoundsOnce />
                     <MapStateHandler />
                       <TileLayer
