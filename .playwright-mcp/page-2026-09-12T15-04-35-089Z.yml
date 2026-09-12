@@ -1,0 +1,89 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - img "Echelon" [ref=e6]
+      - generic [ref=e12]: ECHELON
+    - button "HOME" [ref=e13] [cursor=pointer]
+    - button "OPTIONS" [ref=e14] [cursor=pointer]
+    - button "MACRO" [ref=e15] [cursor=pointer]
+    - button "FLOW" [ref=e16] [cursor=pointer]
+    - button "NEWS" [ref=e17] [cursor=pointer]
+    - button "PORTFOLIO" [ref=e18] [cursor=pointer]
+    - button "TRACKING" [ref=e19] [cursor=pointer]
+    - button "SPREADSHEET" [ref=e20] [cursor=pointer]
+    - button "STOCKS" [ref=e21] [cursor=pointer]
+    - generic [ref=e22]: F1–F9
+  - generic [ref=e24]:
+    - generic [ref=e26]: LIVE
+    - generic [ref=e27]: 11:04:34
+    - generic [ref=e28]: EST
+  - generic [ref=e29]:
+    - generic [ref=e30]:
+      - generic [ref=e31]:
+        - generic [ref=e32]: WATCHLIST
+        - generic [ref=e33]: F1
+      - generic [ref=e34]:
+        - generic [ref=e35]: SYM
+        - generic [ref=e36]: LAST
+        - generic [ref=e37]: CHG%
+      - generic [ref=e59]: 0 SYMBOLS
+    - generic [ref=e62]:
+      - generic [ref=e63]: "[LOADING TREEMAP...]"
+      - generic [ref=e68]:
+        - generic [ref=e69]: NEWS FEED
+        - generic [ref=e70]: AI SCORED · F6
+    - generic [ref=e97]:
+      - generic [ref=e98]: MACRO
+      - generic [ref=e100]:
+        - img [ref=e102]:
+          - 'generic "SPX: N/A" [ref=e106]'
+          - 'generic "TSX: N/A" [ref=e108]'
+          - 'generic "IBOV: N/A" [ref=e110]'
+          - 'generic "IPC: N/A" [ref=e112]'
+          - 'generic "FTSE: N/A" [ref=e114]'
+          - 'generic "DAX: N/A" [ref=e116]'
+          - 'generic "CAC: N/A" [ref=e118]'
+          - 'generic "SMI: N/A" [ref=e120]'
+          - 'generic "TASI: N/A" [ref=e122]'
+          - 'generic "JSE: N/A" [ref=e124]'
+          - 'generic "N225: N/A" [ref=e126]'
+          - 'generic "HSI: N/A" [ref=e128]'
+          - 'generic "SHCOMP: N/A" [ref=e130]'
+          - 'generic "KOSPI: N/A" [ref=e132]'
+          - 'generic "NIFTY: N/A" [ref=e134]'
+          - 'generic "ASX200: N/A" [ref=e136]'
+        - generic [ref=e139]:
+          - generic [ref=e140]: US INDICES
+          - generic [ref=e142]: VOL / FX
+          - generic [ref=e144]: YIELD CURVE
+          - generic [ref=e155]:
+            - generic [ref=e156]: WORLD CLOCK
+            - generic [ref=e157]:
+              - generic [ref=e158]:
+                - generic [ref=e159]: NYC
+                - generic [ref=e162]: 11:04
+              - generic [ref=e163]:
+                - generic [ref=e164]: LON
+                - generic [ref=e167]: 16:04
+              - generic [ref=e168]:
+                - generic [ref=e169]: PAR
+                - generic [ref=e172]: 17:04
+              - generic [ref=e173]:
+                - generic [ref=e174]: DXB
+                - generic [ref=e177]: 19:04
+              - generic [ref=e178]:
+                - generic [ref=e179]: HKG
+                - generic [ref=e182]: 23:04
+              - generic [ref=e183]:
+                - generic [ref=e184]: TYO
+                - generic [ref=e187]: 00:04
+  - generic [ref=e188]:
+    - generic [ref=e189]: YAHOO FINANCE
+    - generic [ref=e192]: POLYGON.IO
+    - generic [ref=e195]: UNUSUAL WHALES
+    - generic [ref=e198]: FRED API
+    - generic [ref=e201]: "LAST UPDATE: 11:04:34"
+    - generic [ref=e202]: ·
+    - generic [ref=e203]: "DELAY: 15MIN"
+    - generic [ref=e204]: ·
+    - generic [ref=e205]: ECHELON v0.1

@@ -208,6 +208,78 @@ async function buildIndex(apiKey: string): Promise<IndexShape> {
   }
 }
 
+
+/** Previous calendar day as YYYY-MM-DD. */
+function shiftDate(iso: string, days: number): string {
+  const d = new Date(`${iso}T00:00:00Z`)
+  d.setUTCDate(d.getUTCDate() + days)
+  return d.toISOString().slice(0, 10)
+}
+
+interface DatedPrice { i: number; d: string; o: number; h: number; l: number; c: number; v: number }
+
+/**
+ * Day-over-day move plus market cap for the whole universe, in three upstream
+ * calls rather than one per symbol. Börsdata has no bulk "change %" feed, so
+ * the prior close comes from the dated bulk snapshot — walking back a few days
+ * to skip weekends and holidays.
+ */
+async function loadMovers(apiKey: string, global: boolean) {
+  const lastPath = global ? '/instruments/stockprices/global/last' : '/instruments/stockprices/last'
+  const datePath = global ? '/instruments/stockprices/global/date' : '/instruments/stockprices/date'
+
+  const last = await bdFetch<{ stockPricesList: DatedPrice[] }>(apiKey, lastPath, TTL.lastPrices)
+  const latest = last.stockPricesList ?? []
+  if (latest.length === 0) return { asOf: null, previousDate: null, movers: [] }
+
+  // The feed's own latest trading date, not today's wall clock
+  const asOf = latest.reduce((max, p) => (p.d > max ? p.d : max), latest[0].d)
+
+  let prior: DatedPrice[] = []
+  let previousDate: string | null = null
+  for (let back = 1; back <= 7; back += 1) {
+    const candidate = shiftDate(asOf, -back)
+    const res = await bdFetch<{ stockPricesList: DatedPrice[] }>(
+      apiKey,
+      `${datePath}?date=${candidate}`,
+      TTL.prices,
+    )
+    const rows = res.stockPricesList ?? []
+    if (rows.length > 0) {
+      prior = rows
+      previousDate = candidate
+      break
+    }
+  }
+
+  const priorClose = new Map(prior.map(p => [p.i, p.c]))
+  const caps = await bdFetch<{ values: Array<{ i: number; n: number | null }> }>(
+    apiKey,
+    '/instruments/kpis/50/last/latest',
+    TTL.kpi,
+  )
+  const capById = new Map((caps.values ?? []).map(v => [v.i, v.n]))
+
+  const movers = latest.map(p => {
+    const prev = priorClose.get(p.i)
+    const changePct = prev != null && prev !== 0 ? ((p.c - prev) / prev) * 100 : null
+    return {
+      insId: p.i,
+      date: p.d,
+      close: p.c,
+      open: p.o,
+      high: p.h,
+      low: p.l,
+      volume: p.v,
+      previousClose: prev ?? null,
+      changePct,
+      marketCap: capById.get(p.i) ?? null,
+    }
+  })
+
+  return { asOf, previousDate, movers }
+}
+
 // ── Route handlers ──────────────────────────────────────────────────────────
 function json(res: ServerResponse, status: number, body: unknown) {
   res.writeHead(status, {
@@ -319,6 +391,13 @@ export function borsdataProxyPlugin(env: Record<string, string>): Plugin {
             `/instruments/${insId}/reports/${type}?maxCount=${encodeURIComponent(maxCount)}`,
             TTL.reports,
           )
+          json(res, 200, data)
+          return
+        }
+
+        // Day-over-day change and market cap for the whole universe.
+        case '/movers': {
+          const data = await loadMovers(apiKey, q.get('global') === '1')
           json(res, 200, data)
           return
         }

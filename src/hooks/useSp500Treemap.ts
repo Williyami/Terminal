@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { fetchMoversBySymbol } from '../utils/borsdata'
 
 interface Sp500Item {
   symbol: string
@@ -91,7 +92,23 @@ async function fetchConstituents(): Promise<Array<{ symbol: string; name: string
   })).filter(r => r.symbol)
 }
 
+/**
+ * Börsdata covers the whole S&P 500 and answers in a couple of requests, so it
+ * leads here; Yahoo's crumb-gated quote endpoint is the fallback.
+ */
 async function fetchQuotes(symbols: string[]): Promise<Record<string, { marketCap: number; changePct: number }>> {
+  try {
+    const bd = await fetchMoversBySymbol(symbols)
+    // Partial coverage is expected (dual listings, recent additions); only fall
+    // back when Börsdata knows almost none of the index.
+    if (Object.keys(bd).length > symbols.length * 0.5) return bd
+  } catch {
+    // fall through to Yahoo
+  }
+  return fetchYahooQuotes(symbols)
+}
+
+async function fetchYahooQuotes(symbols: string[]): Promise<Record<string, { marketCap: number; changePct: number }>> {
   const chunks: string[][] = []
   for (let i = 0; i < symbols.length; i += 100) chunks.push(symbols.slice(i, i + 100))
   const results: Record<string, { marketCap: number; changePct: number }> = {}

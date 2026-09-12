@@ -256,3 +256,75 @@ export async function fetchReports(
   const data = await res.json()
   return (data?.reports ?? []) as Report[]
 }
+
+// ── Market movers ───────────────────────────────────────────────────────────
+export interface Mover {
+  insId: number
+  date: string
+  close: number
+  previousClose: number | null
+  changePct: number | null
+  /** Millions of the instrument's report currency. */
+  marketCap: number | null
+  volume: number
+}
+
+export interface MoversSnapshot {
+  asOf: string | null
+  previousDate: string | null
+  movers: Mover[]
+}
+
+const moversCache = new Map<boolean, Promise<MoversSnapshot>>()
+
+/** Day-over-day move and market cap for every instrument, in one request. */
+export function fetchMovers(global: boolean): Promise<MoversSnapshot> {
+  const hit = moversCache.get(global)
+  if (hit) return hit
+  const task = (async () => {
+    const res = await fetch(`/bd/movers?global=${global ? 1 : 0}`)
+    if (!res.ok) throw new Error(`Börsdata movers HTTP ${res.status}`)
+    return (await res.json()) as MoversSnapshot
+  })().catch(err => {
+    moversCache.delete(global)
+    throw err
+  })
+  moversCache.set(global, task)
+  return task
+}
+
+/**
+ * Change % and market cap keyed by the caller's own symbols. Pulls both halves
+ * of the universe only when the symbol list actually spans them.
+ */
+export async function fetchMoversBySymbol(
+  symbols: string[],
+): Promise<Record<string, { marketCap: number; changePct: number }>> {
+  const instruments = await resolveSymbols(symbols)
+  if (instruments.size === 0) return {}
+
+  const needGlobal = [...instruments.values()].some(i => i.global)
+  const needNordic = [...instruments.values()].some(i => !i.global)
+
+  const snapshots = await Promise.all([
+    needNordic ? fetchMovers(false) : Promise.resolve(null),
+    needGlobal ? fetchMovers(true) : Promise.resolve(null),
+  ])
+
+  const byInsId = new Map<number, Mover>()
+  for (const snap of snapshots) {
+    if (!snap) continue
+    for (const m of snap.movers) byInsId.set(m.insId, m)
+  }
+
+  const out: Record<string, { marketCap: number; changePct: number }> = {}
+  for (const [symbol, inst] of instruments) {
+    const mover = byInsId.get(inst.insId)
+    if (!mover) continue
+    out[symbol] = {
+      marketCap: mover.marketCap ?? 0,
+      changePct: mover.changePct ?? 0,
+    }
+  }
+  return out
+}
